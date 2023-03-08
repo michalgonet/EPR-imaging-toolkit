@@ -1,0 +1,12 @@
+{
+  "ConfigFile": {
+    "input": "data/input",
+    "output": "data/output"
+  },
+  "AcqPars": {
+
+  },
+  "RecoPars": {
+
+  }
+}
