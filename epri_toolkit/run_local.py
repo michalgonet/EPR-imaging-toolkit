@@ -1,14 +1,15 @@
 import click
-from pathlib import Path
-from epri_toolkit.classes import Config
+
+from epri_toolkit.classes import Config, Reconstruction
 
 
 @click.command()
-@click.option('--config-path', type=str, default="configurations/default_config.json", help='Path to config file')
-@click.option('--input-file', type=str, default="data/input", help='Path to input file.')
-@click.option('--out-dir', type=str, default="data/output", help='Path to output directory')
-def run_local(config_path, input_file, out_dir):
+@click.argument('config-path', type=str, default="configurations/default_config.json")
+def run_local(config_path):
     config = Config(config_path)
+    reco = Reconstruction()
+    reco.get_acq_pars(config)
+    reco.get_reco_pars(config)
 
 
 if __name__ == '__main__':

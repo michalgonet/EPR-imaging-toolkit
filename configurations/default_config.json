@@ -1,12 +1,19 @@
 {
-  "ConfigFile": {
+  "Paths": {
     "input": "data/input",
     "output": "data/output"
   },
-  "AcqPars": {
-
+  "Acq_pars": {
+    "img_type": "2D",
+    "plane": "XY",
+    "alpha_no": 20,
+    "beta_no": 1,
+    "gamma_no": 1,
+    "gradient": 1
   },
-  "RecoPars": {
-
+  "Reco_pars": {
+    "img_size": 64,
+    "filter": "ram-lak",
+    "cutoff": 1
   }
 }
