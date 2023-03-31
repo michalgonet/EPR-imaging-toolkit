@@ -1,6 +1,6 @@
 {
   "Paths": {
-    "input": "data/input",
+    "input": "data/input/Bruker/3D/raw_example.DSC",
     "output": "data/output"
   },
   "Acq_pars": {
