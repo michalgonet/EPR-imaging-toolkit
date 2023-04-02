@@ -46,9 +46,9 @@ class Config:
     sinogram_filepath: str = field(init=False)
     reference_filepath: str = field(init=False)
     output_dir: str = field(init=False)
-    img_size: int
-    filter: str
-    cutoff: float
+    img_size: int = field(init=False)
+    filter: str = field(init=False)
+    cutoff: float = field(init=False)
 
     def __post_init__(self):
         with open(self.path) as json_file:
@@ -69,20 +69,16 @@ class Reconstruction:
     reco_array: np.ndarray = field(init=False)
 
     def __post_init__(self) -> None:
-        if self.acq_pars.img_type == '2D':
-            self.reco_array = np.zeros([self.reco_pars.img_size,
-                                        self.reco_pars.img_size],
-                                       dtype=float)
-        elif self.acq_pars.img_type == '3D' or self.acq_pars.img_type == '3DS':
-            self.reco_array = np.zeros([self.reco_pars.img_size,
-                                        self.reco_pars.img_size,
-                                        self.reco_pars.img_size],
-                                       dtype=float)
-        elif self.acq_pars.img_type == '4D':
-            self.reco_array = np.zeros([self.reco_pars.img_size,
-                                        self.reco_pars.img_size,
-                                        self.reco_pars.img_size,
-                                        self.reco_pars.img_size],
-                                       dtype=float)
+        img_type = self.acq_pars.img_type
+        img_size = self.reco_pars.img_size
+
+        if img_type == '2D':
+            shape = (img_size, img_size)
+        elif img_type in ('3D', '3DS'):
+            shape = (img_size, img_size, img_size)
+        elif img_type == '4D':
+            shape = (img_size, img_size, img_size, img_size)
         else:
-            raise KeyError(f' {self.acq_pars.img_type} is unsupported')
+            raise ValueError(f'Unsupported image type: {img_type}')
+
+        self.reco_array = np.zeros(shape, dtype=float)

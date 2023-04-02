@@ -21,9 +21,9 @@ def get_reco_pars(config: Config, acq_pars: AcqPars) -> RecoPars:
 
 
 def fbp3d(sinogram: np.ndarray, reco_pars: RecoPars):
-    sino3d = np.reshape(sinogram, [sinogram.shape[0], reco_pars.beta_no, reco_pars.alpha_no], order='C')
-    img_stage_1 = np.zeros([reco_pars.img_size, reco_pars.img_size, reco_pars.alpha_no])
-    img_stage_2 = np.zeros([reco_pars.img_size, reco_pars.img_size, reco_pars.img_size])
+    sino3d = sinogram.reshape(sinogram.shape[0], reco_pars.beta_no, reco_pars.alpha_no, order='C')
+    img_stage_1 = np.zeros((reco_pars.img_size, reco_pars.img_size, reco_pars.alpha_no))
+    img_stage_2 = np.zeros((reco_pars.img_size, reco_pars.img_size, reco_pars.img_size))
 
     for alpha in range(reco_pars.alpha_no):
         img_stage_1[:, :, alpha] = iradon(radon_image=sino3d[:, :, alpha],
