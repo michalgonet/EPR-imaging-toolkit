@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import List
 import json
 
 import numpy as np
@@ -6,85 +7,82 @@ import numpy as np
 
 @dataclass(frozen=True)
 class AcqPars:
+    data: str
+    time: str
+    scan_time: str
+    img_time: str
     img_type: str
-    plane: str
+    orient: str
+    points: int
     alpha_no: int
     beta_no: int
     gamma_no: int
+    first_alpha: float
+    max_gamma: float
     gradient: float
+    sweep: float
+    center_field: float
+    mod_amp: float
+    mod_freq: float
+    power: float
 
 
 @dataclass(frozen=True)
 class RecoPars:
     img_size: int
     filter: str
-    cut_off: float
+    cutoff: float
+    alpha_no: int
+    beta_no: int
+    gamma_no: int
+    alphas: List[float]
+    betas: List[float]
+    gammas: List[float]
 
 
 @dataclass
 class Config:
     path: str
-    input_filepath: str = field(init=False)
+    sinogram_filepath: str = field(init=False)
+    reference_filepath: str = field(init=False)
     output_dir: str = field(init=False)
-    img_type: str = field(init=False)
-    plane: str = field(init=False)
-    alpha_no: int = field(init=False)
-    beta_no: int = field(init=False)
-    gamma_no: int = field(init=False)
-    gradient: float = field(init=False)
-    img_size: int = field(init=False)
-    filter: str = field(init=False)
-    cut_off: float = field(init=False)
+    img_size: int
+    filter: str
+    cutoff: float
 
     def __post_init__(self):
         with open(self.path) as json_file:
             data = json.load(json_file)
-        self.input_filepath = data["Paths"]["input"]
-        self.output_dir = data["Paths"]["output"]
-        self.img_type = data["Acq_pars"]["img_type"]
-        self.plane = data["Acq_pars"]["plane"]
-        self.alpha_no = data["Acq_pars"]["alpha_no"]
-        self.beta_no = data["Acq_pars"]["beta_no"]
-        self.gamma_no = data["Acq_pars"]["gamma_no"]
-        self.gradient = data["Acq_pars"]["gradient"]
-        self.img_size = data["Reco_pars"]["img_size"]
-        self.filter = data["Reco_pars"]["filter"]
-        self.cut_off = data["Reco_pars"]["cutoff"]
+        self.sinogram_filepath = data["Paths"]["input_sino_file"]
+        self.reference_filepath = data["Paths"]["input_ref_file"]
+        self.output_dir = data["Paths"]["output_dir"]
+        self.img_size = data["Reconstruction"]["img_size"]
+        self.filter = data["Reconstruction"]["filter"]
+        self.cutoff = data["Reconstruction"]["cutoff"]
 
 
 @dataclass
 class Reconstruction:
-    img: np.ndarray = field(init=False)
-    acq_pars: AcqPars = field(init=False)
-    reco_pars: RecoPars = field(init=False)
+    acq_pars: AcqPars
+    reco_pars: RecoPars
+    sinogram: np.ndarray
+    reco_array: np.ndarray = field(init=False)
 
-    def get_acq_pars(self, config: Config) -> None:
-        self.acq_pars = AcqPars(img_type=config.img_type,
-                                plane=config.plane,
-                                alpha_no=config.alpha_no,
-                                beta_no=config.beta_no,
-                                gamma_no=config.gamma_no,
-                                gradient=config.gradient)
-
-    def get_reco_pars(self, config: Config) -> None:
-        self.reco_pars = RecoPars(img_size=config.img_size,
-                                  filter=config.filter,
-                                  cut_off=config.cut_off)
-
+    def __post_init__(self) -> None:
         if self.acq_pars.img_type == '2D':
-            self.img = np.zeros([self.reco_pars.img_size,
-                                 self.reco_pars.img_size],
-                                dtype=float)
-        elif self.acq_pars.img_type == '3D':
-            self.img = np.zeros([self.reco_pars.img_size,
-                                 self.reco_pars.img_size,
-                                 self.reco_pars.img_size],
-                                dtype=float)
+            self.reco_array = np.zeros([self.reco_pars.img_size,
+                                        self.reco_pars.img_size],
+                                       dtype=float)
+        elif self.acq_pars.img_type == '3D' or self.acq_pars.img_type == '3DS':
+            self.reco_array = np.zeros([self.reco_pars.img_size,
+                                        self.reco_pars.img_size,
+                                        self.reco_pars.img_size],
+                                       dtype=float)
         elif self.acq_pars.img_type == '4D':
-            self.img = np.zeros([self.reco_pars.img_size,
-                                 self.reco_pars.img_size,
-                                 self.reco_pars.img_size,
-                                 self.reco_pars.img_size],
-                                dtype=float)
+            self.reco_array = np.zeros([self.reco_pars.img_size,
+                                        self.reco_pars.img_size,
+                                        self.reco_pars.img_size,
+                                        self.reco_pars.img_size],
+                                       dtype=float)
         else:
-            raise KeyError("Wrong img type in config file")
+            raise KeyError(f' {self.acq_pars.img_type} is unsupported')
