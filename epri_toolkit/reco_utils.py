@@ -1,5 +1,4 @@
 import numpy as np
-
 from epri_toolkit.classes import Config, AcqPars, RecoPars
 from skimage.transform import iradon
 
@@ -9,8 +8,12 @@ def get_reco_pars(config: Config, acq_pars: AcqPars) -> RecoPars:
     betas = list(np.linspace(acq_pars.first_alpha, 180 - acq_pars.first_alpha, acq_pars.beta_no))
     gammas = list(np.linspace(-acq_pars.max_gamma, acq_pars.max_gamma, acq_pars.gamma_no))
 
-    return RecoPars(img_size=int(config.img_size),
+    return RecoPars(method=config.reco_method,
+                    img_size=int(config.img_size),
                     filter=config.filter,
+                    deconvolution=bool(config.deconvolution),
+                    deco_filter=float(config.deco_filter),
+                    baseline=bool(config.baseline),
                     cutoff=config.cutoff,
                     alpha_no=acq_pars.alpha_no,
                     beta_no=acq_pars.beta_no,
@@ -21,7 +24,7 @@ def get_reco_pars(config: Config, acq_pars: AcqPars) -> RecoPars:
 
 
 def fbp3d(sinogram: np.ndarray, reco_pars: RecoPars):
-    sino3d = sinogram.reshape(sinogram.shape[0], reco_pars.beta_no, reco_pars.alpha_no, order='C')
+    sino3d = sinogram.reshape((sinogram.shape[0], reco_pars.beta_no, reco_pars.alpha_no), order='C')
     img_stage_1 = np.zeros((reco_pars.img_size, reco_pars.img_size, reco_pars.alpha_no))
     img_stage_2 = np.zeros((reco_pars.img_size, reco_pars.img_size, reco_pars.img_size))
 

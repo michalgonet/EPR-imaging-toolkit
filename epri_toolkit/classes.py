@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Dict
 import json
 
 import numpy as np
@@ -11,6 +11,7 @@ class AcqPars:
     time: str
     scan_time: str
     img_time: str
+    exp_type: str
     img_type: str
     orient: str
     points: int
@@ -28,10 +29,34 @@ class AcqPars:
 
 
 @dataclass(frozen=True)
+class RawData:
+    raw_sinogram: np.ndarray
+    raw_sinogram_pars: Dict[str, List[str]]
+    raw_ref: np.ndarray = None
+    raw_ref_pars: Dict[str, List[str]] = None
+
+
+@dataclass(frozen=True)
+class RefPars:
+    data: str
+    time: str
+    exp_type: str
+    sweep: float
+    center_field: float
+    mod_amp: float
+    mod_freq: float
+    power: float
+
+
+@dataclass(frozen=True)
 class RecoPars:
+    method: str
     img_size: int
     filter: str
+    deconvolution: bool
+    deco_filter: float
     cutoff: float
+    baseline: bool
     alpha_no: int
     beta_no: int
     gamma_no: int
@@ -59,6 +84,10 @@ class Config:
         self.img_size = data["Reconstruction"]["img_size"]
         self.filter = data["Reconstruction"]["filter"]
         self.cutoff = data["Reconstruction"]["cutoff"]
+        self.deconvolution = data["Reconstruction"]["deconvolution"]
+        self.deco_filter = data["Reconstruction"]["deconvolution_filter"]
+        self.reco_method = data["Reconstruction"]["method"]
+        self.baseline = data["Reconstruction"]["remove_baseline"]
 
 
 @dataclass
