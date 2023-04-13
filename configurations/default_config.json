@@ -5,12 +5,16 @@
     "output_dir": "data/output"
   },
   "Reconstruction": {
-    "method": "fbp",
+    "method": "ms_fbp",
     "img_size": 128,
-    "filter": "ramp",
-    "cutoff": 1,
+    "filter_spatial": "ramp",
+    "filter_spectral": "sheep-logan",
+    "cutoff_spatial": 1,
+    "cutoff_spectral": 0.5,
     "remove_baseline": true,
     "deconvolution": true,
-    "deconvolution_filter": 100
+    "deconvolution_filter": 100,
+    "sart_relaxation": 0.15,
+    "sart_iterations": [1, 1, 1]
   }
 }

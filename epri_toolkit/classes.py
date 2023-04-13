@@ -37,25 +37,15 @@ class RawData:
 
 
 @dataclass(frozen=True)
-class RefPars:
-    data: str
-    time: str
-    exp_type: str
-    sweep: float
-    center_field: float
-    mod_amp: float
-    mod_freq: float
-    power: float
-
-
-@dataclass(frozen=True)
 class RecoPars:
     method: str
     img_size: int
-    filter: str
+    filter_spat: str
+    filter_spec: str
     deconvolution: bool
     deco_filter: float
-    cutoff: float
+    cutoff_spat: float
+    cutoff_spec: float
     baseline: bool
     alpha_no: int
     beta_no: int
@@ -63,17 +53,13 @@ class RecoPars:
     alphas: List[float]
     betas: List[float]
     gammas: List[float]
+    sart_iters: List[int]
+    sart_relax: float
 
 
 @dataclass
 class Config:
     path: str
-    sinogram_filepath: str = field(init=False)
-    reference_filepath: str = field(init=False)
-    output_dir: str = field(init=False)
-    img_size: int = field(init=False)
-    filter: str = field(init=False)
-    cutoff: float = field(init=False)
 
     def __post_init__(self):
         with open(self.path) as json_file:
@@ -82,32 +68,14 @@ class Config:
         self.reference_filepath = data["Paths"]["input_ref_file"]
         self.output_dir = data["Paths"]["output_dir"]
         self.img_size = data["Reconstruction"]["img_size"]
-        self.filter = data["Reconstruction"]["filter"]
-        self.cutoff = data["Reconstruction"]["cutoff"]
+        self.filter_spat = data["Reconstruction"]["filter_spatial"]
+        self.filter_spec = data["Reconstruction"]["filter_spectral"]
+        self.cutoff_spat = data["Reconstruction"]["cutoff_spatial"]
+        self.cutoff_spec = data["Reconstruction"]["cutoff_spectral"]
         self.deconvolution = data["Reconstruction"]["deconvolution"]
         self.deco_filter = data["Reconstruction"]["deconvolution_filter"]
         self.reco_method = data["Reconstruction"]["method"]
         self.baseline = data["Reconstruction"]["remove_baseline"]
+        self.sart_iters = data["Reconstruction"]["sart_iterations"]
+        self.sart_relax = data["Reconstruction"]["sart_relaxation"]
 
-
-@dataclass
-class Reconstruction:
-    acq_pars: AcqPars
-    reco_pars: RecoPars
-    sinogram: np.ndarray
-    reco_array: np.ndarray = field(init=False)
-
-    def __post_init__(self) -> None:
-        img_type = self.acq_pars.img_type
-        img_size = self.reco_pars.img_size
-
-        if img_type == '2D':
-            shape = (img_size, img_size)
-        elif img_type in ('3D', '3DS'):
-            shape = (img_size, img_size, img_size)
-        elif img_type == '4D':
-            shape = (img_size, img_size, img_size, img_size)
-        else:
-            raise ValueError(f'Unsupported image type: {img_type}')
-
-        self.reco_array = np.zeros(shape, dtype=float)

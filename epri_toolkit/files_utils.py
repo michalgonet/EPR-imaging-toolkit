@@ -13,7 +13,7 @@ def _get_bruker_files_path(sino_path: str) -> List[Path]:
     elif sinogram_path.suffix.upper() == '.DSC':
         paths = [sinogram_path.with_suffix('.DTA'), sinogram_path]
     else:
-        raise KeyError('Incorrect file format')
+        raise ValueError('Incorrect file format. Supported formats are .DTA and .DSC')
     return paths
 
 
@@ -73,6 +73,8 @@ def _load_dsc_file(file_path: Path) -> Dict[str, List[str]]:
 
 def load_bruker_files(path: str) -> Tuple[np.ndarray, Dict[str, List[str]]]:
     file_paths = _get_bruker_files_path(path)
+    if len(file_paths) < 2:
+        raise ValueError("Both DTA and DSC files are required.")
     return _load_dta_file(file_paths[0]), _load_dsc_file(file_paths[1])
 
 
@@ -113,14 +115,3 @@ def get_raw_data(config: Config) -> RawData:
         raw_ref=raw_ref,
         raw_ref_pars=raw_ref_pars
     )
-
-#
-# ref_pars = RefPars(data=raw_ref_pars["DATE"],
-#                    time=raw_ref_pars["TIME"],
-#                    exp_type=raw_ref_pars["EXPT"],
-#                    sweep=float(raw_ref_pars["SweepWidth_G"]),
-#                    center_field=float(raw_ref_pars["CenterField_G"]),
-#                    mod_amp=float(raw_ref_pars["ModAmp_G"]),
-#                    mod_freq=float(raw_ref_pars["ModFreq_kHz"]),
-#                    power=float(raw_ref_pars["Power_mW"]))
-#
