@@ -59,7 +59,7 @@ def ms_fbp3d(sinogram: np.ndarray, reco_pars: RecoPars):
 
 def sart3d(sinogram: np.ndarray, reco_pars: RecoPars):
     sino3d = sinogram.reshape((sinogram.shape[0], reco_pars.beta_no, reco_pars.alpha_no), order='C')
-    img_stage_1 = np.zeros((reco_pars.img_size, reco_pars.img_size, reco_pars.img_size))
+    img_stage_1 = np.zeros((reco_pars.img_size, reco_pars.img_size, reco_pars.alpha_no))
     img_stage_2 = np.zeros((reco_pars.img_size, reco_pars.img_size, reco_pars.img_size))
 
     for alpha in range(reco_pars.alpha_no):
@@ -108,7 +108,44 @@ def sart3d(sinogram: np.ndarray, reco_pars: RecoPars):
 
 
 def ms_fbp4d(sinogram, reco_pars):
-    raise NotImplementedError
+    sino4d = sinogram.reshape((sinogram.shape[0], reco_pars.beta_no, reco_pars.alpha_no, reco_pars.gamma_no), order='F')
+    img_stage_1 = np.zeros((reco_pars.img_size, reco_pars.beta_no, reco_pars.alpha_no, reco_pars.img_size,))
+    img_stage_2 = np.zeros((reco_pars.img_size, reco_pars.beta_no, reco_pars.img_size, reco_pars.img_size))
+    img_stage_3 = np.zeros((reco_pars.img_size, reco_pars.img_size, reco_pars.img_size, reco_pars.img_size))
+
+    for alpha in range(reco_pars.alpha_no):
+        for beta in range(reco_pars.beta_no):
+            img_stage_1[:, beta, alpha, :] = iradon(
+                radon_image=sino4d[:, beta, alpha, :],
+                theta=reco_pars.gammas,
+                output_size=reco_pars.img_size,
+                filter_name=reco_pars.filter_spat,
+                interpolation='linear',
+                circle=False
+            )
+
+    for alpha in range(reco_pars.alpha_no):
+        for j in range(reco_pars.img_size):
+            img_stage_2[:, alpha, :, j] = iradon(
+                radon_image=img_stage_1[:, alpha, :, j],
+                theta=reco_pars.betas,
+                output_size=reco_pars.img_size,
+                filter_name=reco_pars.filter_spat,
+                interpolation='linear',
+                circle=False
+            )
+    for i in range(reco_pars.img_size):
+        for j in range(reco_pars.img_size):
+            img_stage_3[:, :, i, j] = iradon(
+                radon_image=img_stage_2[:, :, i, j],
+                theta=reco_pars.alphas,
+                output_size=reco_pars.img_size,
+                filter_name=reco_pars.filter_spat,
+                interpolation='linear',
+                circle=False
+            )
+
+    return img_stage_3
 
 
 def reconstruct(sinogram: np.ndarray, acq_pars: AcqPars, reco_pars: RecoPars) -> np.ndarray:
@@ -118,6 +155,6 @@ def reconstruct(sinogram: np.ndarray, acq_pars: AcqPars, reco_pars: RecoPars) ->
         elif reco_pars.method == 'sart':
             return sart3d(sinogram, reco_pars)
 
-    elif acq_pars.img_type == '4D':
+    elif acq_pars.img_type == '3D + Spectral':
         if reco_pars.method == 'ms_fbp':
             return ms_fbp4d(sinogram, reco_pars)

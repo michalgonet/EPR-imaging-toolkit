@@ -48,7 +48,7 @@ def sinogram_remove_baseline(sinogram):
 
 def sinogram_preprocessing(raw_data: RawData, acq_pars: AcqPars, reco_pars: RecoPars) -> np.ndarray:
     sinogram = create_sino2d(raw_data.raw_sinogram, acq_pars)
-    if reco_pars.deconvolution:
+    if reco_pars.deconvolution and (acq_pars.img_type == '3D' or acq_pars.img_type == '2D'):
         sino = np.apply_along_axis(lambda x: deconvolution(x, raw_data.raw_ref, reco_pars.deco_filter),
                                    axis=0, arr=sinogram)
     else:

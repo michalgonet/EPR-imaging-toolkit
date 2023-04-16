@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Dict
 import json
 
@@ -78,4 +78,3 @@ class Config:
         self.baseline = data["Reconstruction"]["remove_baseline"]
         self.sart_iters = data["Reconstruction"]["sart_iterations"]
         self.sart_relax = data["Reconstruction"]["sart_relaxation"]
-

@@ -28,7 +28,7 @@ def _load_dta_file(path) -> np.ndarray:
 
 
 def _load_dsc_file(file_path: Path) -> Dict[str, List[str]]:
-    if not os.path.isfile(file_path):
+    if not file_path.is_file():
         raise FileNotFoundError(f"File not found: {file_path}")
 
     data_dict = {}
@@ -39,12 +39,12 @@ def _load_dsc_file(file_path: Path) -> Dict[str, List[str]]:
             if line.startswith('#') or not line:
                 continue
 
-            match = re.match(r'([a-zA-Z0-9_]+)\s+([\w.]+)\s*(\w*)', line)
-
+            match = re.match(r'([a-zA-Z0-9_]+)\s+([\w.]+)\s*(\w*)\s*(.*)', line)
             if match:
                 key = match.group(1)
                 value = match.group(2)
                 unit = match.group(3)
+                extra_info = match.group(4)
 
                 try:
                     value = float(value)
@@ -65,6 +65,9 @@ def _load_dsc_file(file_path: Path) -> Dict[str, List[str]]:
                 if unit:
                     data_dict[key].append(unit)
 
+                if extra_info:
+                    data_dict[key].append(extra_info)
+
     for key in data_dict:
         data_dict[key] = [str(value).strip("'") for value in data_dict[key]]
 
@@ -78,36 +81,40 @@ def load_bruker_files(path: str) -> Tuple[np.ndarray, Dict[str, List[str]]]:
     return _load_dta_file(file_paths[0]), _load_dsc_file(file_paths[1])
 
 
-def get_acq_pars(raw_sinogram_pars: Dict[str, List[str]]) -> AcqPars:
+def get_acq_pars(raw_pars: Dict[str, List[str]]) -> AcqPars:
     return AcqPars(
-        data=str(raw_sinogram_pars["DATE"][0]),
-        time=str(raw_sinogram_pars["TIME"][0]),
-        exp_type=str(raw_sinogram_pars["EXPT"][0]),
-        scan_time=str(raw_sinogram_pars["SWTime"][0]),
-        img_time=str(raw_sinogram_pars["TotalTime"][0]),
-        img_type=str(raw_sinogram_pars["ImageType"][0]),
-        orient=str(raw_sinogram_pars["ImageOrient"][0]),
-        points=int(float(raw_sinogram_pars["XPTS"][0])),
-        alpha_no=int(float(raw_sinogram_pars["NrOfAlpha"][0])),
-        beta_no=int(float(raw_sinogram_pars["NrOfBeta"][0])),
-        gamma_no=int(float(raw_sinogram_pars["NrOfPsi"][0])),
-        first_alpha=float(raw_sinogram_pars["FirstAlpha"][0]),
-        max_gamma=float(raw_sinogram_pars["MaxPsi"][0]),
-        gradient=float(raw_sinogram_pars["GRAD"][0]),
-        sweep=float(raw_sinogram_pars["SweepWidth"][0]),
-        center_field=float(raw_sinogram_pars["CenterField"][0]),
-        mod_amp=float(raw_sinogram_pars["ModAmp"][0]),
-        mod_freq=float(raw_sinogram_pars["ModFreq"][0]),
-        power=float(raw_sinogram_pars["Power"][0])
+        data=str(raw_pars["DATE"][0]),
+        time=str(raw_pars["TIME"][0]),
+        exp_type=str(raw_pars["EXPT"][0]),
+        scan_time=str(raw_pars["SWTime"][0]),
+        img_time=str(raw_pars["TotalTime"][0]),
+        img_type=str(" ".join(raw_pars["ImageType"])),
+        orient=str(raw_pars["ImageOrient"][0]),
+        points=int(float(raw_pars["XPTS"][0])),
+        alpha_no=int(float(raw_pars["NrOfAlpha"][0])),
+        beta_no=int(float(raw_pars["NrOfBeta"][0])),
+        gamma_no=int(float(raw_pars["NrOfPsi"][0])),
+        first_alpha=float(raw_pars["FirstAlpha"][0]),
+        max_gamma=float(raw_pars["MaxPsi"][0]),
+        gradient=float(raw_pars["GRAD"][0] if "GRAD" in raw_pars else raw_pars["AnglePsi"][0]),
+        sweep=float(raw_pars["SweepWidth"][0]),
+        center_field=float(raw_pars["CenterField"][0]),
+        mod_amp=float(raw_pars["ModAmp"][0]),
+        mod_freq=float(raw_pars["ModFreq"][0]),
+        power=float(raw_pars["Power"][0])
     )
 
 
 def get_raw_data(config: Config) -> RawData:
     try:
         raw_sino, raw_sino_pars = load_bruker_files(config.sinogram_filepath)
-        raw_ref, raw_ref_pars = load_bruker_files(config.reference_filepath) if config.deconvolution else (None, None)
     except FileNotFoundError as e:
         raise FileNotFoundError(f"File not found: {e}")
+
+    try:
+        raw_ref, raw_ref_pars = load_bruker_files(config.reference_filepath) if config.deconvolution else (None, None)
+    except FileNotFoundError:
+        raw_ref, raw_ref_pars = (None, None)
 
     return RawData(
         raw_sinogram=raw_sino,

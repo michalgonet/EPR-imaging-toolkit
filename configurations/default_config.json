@@ -1,18 +1,18 @@
 {
   "Paths": {
-    "input_sino_file": "data/input/Bruker/3D/20x20.DTA",
-    "input_ref_file": "data/input/Bruker/3D/10x10ref.DTA",
+    "input_sino_file": "data/input/Bruker/4D/fantom.DTA",
+    "input_ref_file": "data/input/Bruker/4D/10x10ref.DTA",
     "output_dir": "data/output"
   },
   "Reconstruction": {
     "method": "ms_fbp",
-    "img_size": 128,
+    "img_size": 64,
     "filter_spatial": "ramp",
-    "filter_spectral": "sheep-logan",
+    "filter_spectral": "shepp-logan",
     "cutoff_spatial": 1,
     "cutoff_spectral": 0.5,
     "remove_baseline": true,
-    "deconvolution": true,
+    "deconvolution": false,
     "deconvolution_filter": 100,
     "sart_relaxation": 0.15,
     "sart_iterations": [1, 1, 1]
