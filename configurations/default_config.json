@@ -1,19 +1,20 @@
 {
   "Paths": {
-    "input": "data/input",
-    "output": "data/output"
+    "input_sino_file": "data/input/Bruker/4D/fantom.DTA",
+    "input_ref_file": "data/input/Bruker/4D/10x10ref.DTA",
+    "output_dir": "data/output"
   },
-  "Acq_pars": {
-    "img_type": "2D",
-    "plane": "XY",
-    "alpha_no": 20,
-    "beta_no": 1,
-    "gamma_no": 1,
-    "gradient": 1
-  },
-  "Reco_pars": {
+  "Reconstruction": {
+    "method": "ms_fbp",
     "img_size": 64,
-    "filter": "ram-lak",
-    "cutoff": 1
+    "filter_spatial": "ramp",
+    "filter_spectral": "shepp-logan",
+    "cutoff_spatial": 1,
+    "cutoff_spectral": 0.5,
+    "remove_baseline": true,
+    "deconvolution": false,
+    "deconvolution_filter": 100,
+    "sart_relaxation": 0.15,
+    "sart_iterations": [1, 1, 1]
   }
 }
